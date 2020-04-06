@@ -13,7 +13,7 @@ const register = (req, res) => {
     .update(pass)
     .digest("hex");
 
-  const sql = `INSERT INTO users (mail, pass) VALUES (?,?,?);`;
+  const sql = `INSERT INTO users (mail, pass) VALUES (?,?);`;
   db.query(sql, [mail, hashedPassword], function(err, results) {
     if (err) {
       res.status(500).send("Internal error");
@@ -27,13 +27,27 @@ const register = (req, res) => {
   });
 };
 
+// const getLoggedUser = (req, res) => {
+//   if (!req.session) {
+//     return res.status(400).send("Not logged session detected");
+//   }
+//   const user = req.session;
+//   user.pass = undefined;
+//   res.json(user);
+// };
+
 const getLoggedUser = (req, res) => {
-  if (!req.session) {
-    return res.status(400).send("Not logged session detected");
-  }
-  const user = req.session;
-  user.pass = undefined;
-  res.json(user);
+  redisService.get(`TOKEN_${req.session.token}`, (err, results) => {
+    if (err) {
+      return res.status(500).send("Internal Server Error.");
+    }
+    if (!results) {
+      // 0 or 1
+      return res.status(400).send("Can't Retrieve data");
+    }
+    const { id, username } = JSON.parse(results);
+    res.json({ id, username });
+  });
 };
 
 const login = (req, res) => {
