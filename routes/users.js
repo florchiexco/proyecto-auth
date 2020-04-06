@@ -10,7 +10,8 @@ router.post("/", userController.register);
 router.post("/login", userController.login);
 router.post("/logout", auth, validate, userController.logout);
 router.post("/updatePass", auth, validate, userController.updatePassword);
-router.post("/recovery", userController.sendMail);
+router.post("/mail", userController.sendMail);
+router.post("/recovery", userController.updateResetedPassword);
 
 
 module.exports = router;

@@ -172,6 +172,27 @@ const sendMail = (req, res) => {
   });
 };
 
+const updateResetedPassword = (req, res) => {
+  const { resetCode, newPassword } = req.body;
+  redisService.get(`RESET_${resetCode}`, (err, result) => {
+    if (err) {
+      return res.status(500).json({ msg: "Error trying to send reset code", ok: false, err: err });
+    }
+
+    if (!result) {
+      return res.status(400).json({ msg: "Your reset code isn't valid", ok: false });
+    }
+      const hashedPassword = crypto
+        .createHash("sha256")
+        .update(newPassword)
+        .digest("hex");
+
+      const sql = `UPDATE users SET pass = ? WHERE mail= ?`;
+      db.query(sql, [hashedPassword, result]);
+      return res.status(200).json({ msg: "Password successfully updated!", ok: true });
+    });
+};
+
 
 module.exports = {
   register,
@@ -179,5 +200,6 @@ module.exports = {
   login,
   logout,
   updatePassword,
-  sendMail
+  sendMail,
+  updateResetedPassword
 };
